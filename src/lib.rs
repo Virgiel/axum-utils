@@ -1,6 +1,8 @@
 use axum::{
     body::{Body, Bytes},
+    extract::Request,
     http::{header, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri},
+    middleware::Next,
     response::{IntoResponse, Response},
 };
 use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
@@ -66,6 +68,15 @@ pub fn redirect_https(map: &HeaderMap, uri: &Uri) -> Option<Response> {
                 .into_response()
         },
     )
+}
+
+/// Create a redirect response if the base scheme is http and we are not in localhost
+pub async fn redirect_https_middle_ware(request: Request, next: Next) -> Response {
+    if let Some(redirect) = redirect_https(request.headers(), request.uri()) {
+        redirect
+    } else {
+        next.run(request).await
+    }
 }
 
 /// Fast in memory gzip compression

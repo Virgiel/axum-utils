@@ -1,4 +1,8 @@
-use axum::{body::Body, http::StatusCode, response::Response};
+use axum::{
+    body::Body,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+};
 
 pub type HttpResult = Result<Response, HttpError>;
 
@@ -21,6 +25,12 @@ impl HttpError {
             .status(self.status)
             .body(self.body)
             .unwrap()
+    }
+}
+
+impl IntoResponse for HttpError {
+    fn into_response(self) -> Response {
+        self.response()
     }
 }
 
