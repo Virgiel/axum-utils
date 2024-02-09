@@ -1,7 +1,13 @@
+use std::{
+    net::{IpAddr, SocketAddr},
+    str::FromStr,
+};
+
 use axum::{
+    async_trait,
     body::{Body, Bytes},
-    extract::Request,
-    http::{header, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri},
+    extract::{ConnectInfo, FromRequestParts, Request},
+    http::{header, request::Parts, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri},
     middleware::Next,
     response::{IntoResponse, Response},
 };
@@ -182,5 +188,21 @@ pub fn static_files(
         builder.body(body).unwrap()
     } else {
         (StatusCode::NOT_FOUND).into_response()
+    }
+}
+
+pub struct ClientIp(pub IpAddr);
+
+#[async_trait]
+impl<S: Send + Sync> FromRequestParts<S> for ClientIp {
+    type Rejection = axum::extract::rejection::ExtensionRejection;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let ConnectInfo(addr) = ConnectInfo::<SocketAddr>::from_request_parts(parts, state).await?;
+        Ok(ClientIp(
+            client_ip(&parts.headers)
+                .and_then(|s| IpAddr::from_str(s).ok())
+                .unwrap_or_else(|| addr.ip()),
+        ))
     }
 }
