@@ -20,7 +20,7 @@ pub fn codegen(static_dir: &str, file_name: &str) {
         BufWriter::new(std::fs::File::create(out_dir.join(format!("{file_name}.rs"))).unwrap());
     writeln!(
         &mut rust_file,
-        "use static_opti::FileService;\n\npub fn static_load() -> FileService<'static> {{\n\tFileService::from_raw(include_bytes!(\"{file_name}.static\"))\n}}"
+        "use axum_utils::static_opti::FileService;\n\npub fn static_load() -> FileService<'static> {{\n\tFileService::from_raw(include_bytes!(\"{file_name}.static\"))\n}}"
     )
     .unwrap();
     rust_file.into_inner().unwrap();
