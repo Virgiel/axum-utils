@@ -11,11 +11,11 @@ tokio = { version = "1.28", features = ["signal", "macros"] }
 # Fast gzip compression
 libdeflater = "1.19"
 # Brotli
-brotli = "3.4"
+brotli = "6.0"
 # Fast hash
 xxhash-rust = { version = "0.8", features = ["xxh3"] }
 # Fast base 64
-base64 = "0.21"
+base64 = "0.22"
 # Macro for codegen
 duplicate = "1.0"
 # Mime
