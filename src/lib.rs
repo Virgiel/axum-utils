@@ -157,6 +157,7 @@ pub fn static_files(headers: &HeaderMap, path: &str, files: &'static FileService
         .and_then(|h| h.to_str().ok())
         .unwrap_or("");
     if let Some(it) = files.find(accept_encoding, path) {
+        let mime = mime_guess::from_path(it.path);
         if headers
             .get(header::IF_NONE_MATCH)
             .and_then(|h| h.to_str().ok())
@@ -164,11 +165,14 @@ pub fn static_files(headers: &HeaderMap, path: &str, files: &'static FileService
         {
             return Response::builder()
                 .status(StatusCode::NOT_MODIFIED)
+                .header(header::CONTENT_TYPE, mime.first_or_text_plain().as_ref())
+                .header(header::CACHE_CONTROL, "public, max-age=0, must-revalidate")
+                .header(header::ETAG, it.etag)
+                .header(header::VARY, header::ACCEPT_ENCODING)
                 .body(Body::empty())
                 .unwrap();
         }
 
-        let mime = mime_guess::from_path(it.path);
         let body = Body::from(Bytes::from_static(it.content));
 
         let mut builder = Response::builder()
