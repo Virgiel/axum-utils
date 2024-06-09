@@ -151,17 +151,12 @@ pub async fn shutdown_signal() {
     println!("signal received, starting graceful shutdown");
 }
 
-pub fn static_files(
-    headers: &HeaderMap,
-    path: &str,
-    files: &'static FileService,
-    fallback: Option<&str>,
-) -> Response {
+pub fn static_files(headers: &HeaderMap, path: &str, files: &'static FileService) -> Response {
     let accept_encoding = headers
         .get(header::ACCEPT_ENCODING)
         .and_then(|h| h.to_str().ok())
         .unwrap_or("");
-    if let Some(it) = files.find(accept_encoding, path, fallback) {
+    if let Some(it) = files.find(accept_encoding, path) {
         if headers
             .get(header::IF_NONE_MATCH)
             .and_then(|h| h.to_str().ok())

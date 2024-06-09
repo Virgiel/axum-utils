@@ -104,7 +104,7 @@ impl<'a> FileService<'a> {
     }
 
     /// Find a matching file
-    pub fn find(&self, accept_encoding: &str, path: &str, fallback: Option<&str>) -> Option<Match> {
+    pub fn find(&self, accept_encoding: &str, path: &str) -> Option<Match> {
         let path = path.trim_matches('/');
         // Check path
         if let Some(it) = self.map.get(path) {
@@ -128,13 +128,6 @@ impl<'a> FileService<'a> {
         let path = format!("{}.html", path);
         if let Some(it) = self.map.get(path.as_str()) {
             return Some(self.match_item(accept_encoding, it));
-        }
-
-        // Check fallback
-        if let Some(path) = fallback {
-            if let Some(it) = self.map.get(path) {
-                return Some(self.match_item(accept_encoding, it));
-            }
         }
 
         None
