@@ -10,15 +10,15 @@ pub mod worker;
 fn match_encoding_tag<'a>(
     accept_encoding: &str,
     item: &Item<'a>,
-) -> (Option<&'static str>, (&'a str, &'a [u8])) {
+) -> (Option<&'static str>, &'a [u8]) {
     if let Some(it) = &item.brotli {
         if accept_encoding.contains("br") {
-            return (Some("br"), *it);
+            return (Some("br"), it);
         }
     }
     if let Some(it) = &item.gzip {
         if accept_encoding.contains("gzip") {
-            return (Some("gzip"), *it);
+            return (Some("gzip"), it);
         }
     }
     (None, item.plain)
@@ -28,32 +28,35 @@ fn match_encoding_tag<'a>(
 /// Optimized item with metadata
 pub struct ReportItem<'a> {
     pub path: &'a str,
-    pub plain: (&'a str, (u64, u32)),
-    pub gzip: Option<(&'a str, (u64, u32))>,
-    pub brotli: Option<(&'a str, (u64, u32))>,
+    pub etag: &'a str,
+    pub plain: (u64, u32),
+    pub gzip: Option<(u64, u32)>,
+    pub brotli: Option<(u64, u32)>,
 }
 
 /// Optimized item
 pub struct Item<'a> {
     pub path: &'a str,
-    pub plain: (&'a str, &'a [u8]),
-    pub gzip: Option<(&'a str, &'a [u8])>,
-    pub brotli: Option<(&'a str, &'a [u8])>,
+    pub etag: &'a str,
+    pub plain: &'a [u8],
+    pub gzip: Option<&'a [u8]>,
+    pub brotli: Option<&'a [u8]>,
 }
 
 impl<'a> Item<'a> {
     fn from_report(item: &ReportItem<'a>, content: &'a [u8]) -> Self {
         Self {
             path: item.path,
+            etag: item.etag,
             plain: Self::borrow(item.plain, content),
             gzip: item.gzip.map(|it| Self::borrow(it, content)),
             brotli: item.brotli.map(|it| Self::borrow(it, content)),
         }
     }
 
-    fn borrow(it: (&'a str, (u64, u32)), content: &'a [u8]) -> (&'a str, &'a [u8]) {
-        let (str, (start, len)) = it;
-        (str, &content[start as usize..][..len as usize])
+    fn borrow(it: (u64, u32), content: &'a [u8]) -> &'a [u8] {
+        let (start, len) = it;
+        &content[start as usize..][..len as usize]
     }
 }
 
@@ -135,11 +138,11 @@ impl<'a> FileService<'a> {
 
     /// Construct match from an item and an accept encoding header value
     fn match_item(&self, accept_encoding: &str, item: &Item<'a>) -> Match {
-        let (encoding, (etag, content)) = match_encoding_tag(accept_encoding, item);
+        let (encoding, content) = match_encoding_tag(accept_encoding, item);
         Match {
             path: item.path,
             content,
-            etag,
+            etag: item.etag,
             encoding,
         }
     }

@@ -41,7 +41,7 @@ fn main() {
     let mut gzip_total = 0;
     let mut brotli_total = 0;
     for item in &items {
-        let plain = item.plain.1 .1;
+        let plain = item.plain.1;
         plain_total += plain;
         write!(
             &mut stdout,
@@ -55,7 +55,7 @@ fn main() {
             (&item.gzip, &mut gzip_total),
             (&item.brotli, &mut brotli_total),
         ] {
-            if let Some((_, (_, len))) = opt {
+            if let Some((_, len)) = opt {
                 *size += *len;
                 write!(
                     &mut stdout,

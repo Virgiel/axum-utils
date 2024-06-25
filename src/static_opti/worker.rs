@@ -45,9 +45,10 @@ impl<T> StaticQueue<T> {
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Item {
     pub path: String,
-    pub plain: (String, (u64, u32)),
-    pub gzip: Option<(String, (u64, u32))>,
-    pub brotli: Option<(String, (u64, u32))>,
+    pub etag: String,
+    pub plain: (u64, u32),
+    pub gzip: Option<(u64, u32)>,
+    pub brotli: Option<(u64, u32)>,
 }
 
 type CompressedFile = (String, Vec<u8>, Option<Vec<u8>>, Option<Vec<u8>>);
@@ -78,12 +79,13 @@ impl Accumulator {
 
     /// Add a new compressed file
     pub fn add(&mut self, file: CompressedFile) {
-        let (path, content, gzip, brotli) = file;
+        let (path, plain, gzip, brotli) = file;
         let item = Item {
             path,
-            plain: (etag(&content), self.append(&content)),
-            gzip: gzip.map(|content| (etag(&content), self.append(&content))),
-            brotli: brotli.map(|content| (etag(&content), self.append(&content))),
+            etag: etag(&plain),
+            plain: self.append(&plain),
+            gzip: gzip.map(|content| self.append(&content)),
+            brotli: brotli.map(|content| self.append(&content)),
         };
         self.items.push(item);
     }
@@ -92,9 +94,9 @@ impl Accumulator {
     pub fn merge(mut self, other: Self) -> Self {
         // Copy items with new pos
         self.items.extend(other.items.into_iter().map(|mut item| {
-            item.plain.1 .0 += self.count;
-            item.gzip.iter_mut().for_each(|it| it.1 .0 += self.count);
-            item.brotli.iter_mut().for_each(|it| it.1 .0 += self.count);
+            item.plain.0 += self.count;
+            item.gzip.iter_mut().for_each(|it| it.0 += self.count);
+            item.brotli.iter_mut().for_each(|it| it.0 += self.count);
             item
         }));
         // Copy other file from start
