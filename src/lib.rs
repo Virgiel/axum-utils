@@ -25,7 +25,7 @@ use tokio::signal;
 
 /// Get str header value
 pub fn str_header<'a>(map: &'a HeaderMap, name: &'static str) -> Option<&'a str> {
-    map.get(&HeaderName::from_static(name))
+    map.get(HeaderName::from_static(name))
         .and_then(|h| h.to_str().ok())
 }
 
