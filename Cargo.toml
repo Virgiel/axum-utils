@@ -17,7 +17,7 @@ xxhash-rust = { version = "0.8", features = ["xxh3"] }
 # Fast base 64
 base64 = "0.22"
 # Macro for codegen
-duplicate = "1.0"
+duplicate = "2.0"
 # Mime
 mime_guess = "2"
 # JSON
