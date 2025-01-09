@@ -4,7 +4,6 @@ use std::{
 };
 
 use axum::{
-    async_trait,
     body::{Body, Bytes},
     extract::{ConnectInfo, FromRequestParts, Request},
     http::{header, request::Parts, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri},
@@ -192,7 +191,6 @@ pub fn static_files(headers: &HeaderMap, path: &str, files: &'static FileService
 
 pub struct ClientIp(pub IpAddr);
 
-#[async_trait]
 impl<S: Send + Sync> FromRequestParts<S> for ClientIp {
     type Rejection = axum::extract::rejection::ExtensionRejection;
 
