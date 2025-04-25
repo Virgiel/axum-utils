@@ -96,7 +96,7 @@ impl<'a> FileService<'a> {
     pub fn from_raw(content: &'a [u8]) -> Self {
         let size = u64::from_le_bytes(content[content.len() - 8..].try_into().unwrap());
         let bincode_part = &content[content.len() - 8 - size as usize..];
-        let items: Vec<ReportItem> = bincode::deserialize(bincode_part).unwrap();
+        let (items, _): (Vec<ReportItem>, _) = bincode::serde::borrow_decode_from_slice(bincode_part, bincode::config::standard()).unwrap();
         Self {
             map: HashMap::from_iter(
                 items

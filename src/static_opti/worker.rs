@@ -5,7 +5,7 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
-use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
+use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
 use brotli::CompressorWriter;
 use libdeflater::{CompressionLvl, Compressor};
 use tempfile::NamedTempFile;
@@ -110,8 +110,12 @@ impl Accumulator {
 
     /// Persist accumulator buffer in a file, return optimized items
     pub fn persist(mut self, path: Option<&Path>) -> (File, Vec<Item>) {
-        let size = bincode::serialized_size(&self.items).unwrap();
-        bincode::serialize_into(&mut self.writer, &self.items).unwrap();
+        let size = bincode::serde::encode_into_std_write(
+            &self.items,
+            &mut self.writer,
+            bincode::config::standard(),
+        )
+        .unwrap();
         self.writer
             .write_all(size.to_le_bytes().as_slice())
             .unwrap();
@@ -166,7 +170,7 @@ fn compress_file(file: &Path, parent: &Path) -> CompressedFile {
 
         // Brotli compress
         let mut brotli = Vec::new();
-        let mut writer = CompressorWriter::new(&mut brotli, 4096, 11, 24);
+        let mut writer = CompressorWriter::new(&mut brotli, 4 * 1024 * 1024, 11, 24);
         writer.write_all(&plain).unwrap();
         writer.flush().unwrap();
         writer.into_inner();

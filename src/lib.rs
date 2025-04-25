@@ -6,11 +6,11 @@ use std::{
 use axum::{
     body::{Body, Bytes},
     extract::{ConnectInfo, FromRequestParts, Request},
-    http::{header, request::Parts, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri},
+    http::{HeaderMap, HeaderName, HeaderValue, StatusCode, Uri, header, request::Parts},
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
+use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
 use libdeflater::{CompressionLvl, Compressor};
 
 pub mod error;
