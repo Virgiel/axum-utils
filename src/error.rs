@@ -7,7 +7,7 @@ use axum::{
 pub type HttpResult = Result<Response, HttpError>;
 
 pub struct HttpError {
-    status: StatusCode,
+    pub status: StatusCode,
     body: Body,
 }
 
