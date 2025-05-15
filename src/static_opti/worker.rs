@@ -6,7 +6,7 @@ use std::{
 };
 
 use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
-use brotli::CompressorWriter;
+use brotlic::{BlockSize, BrotliEncoderOptions, CompressorWriter, Quality, WindowSize};
 use libdeflater::{CompressionLvl, Compressor};
 use tempfile::NamedTempFile;
 
@@ -169,11 +169,17 @@ fn compress_file(file: &Path, parent: &Path) -> CompressedFile {
         let gzip = (gzip.len() * 100 / plain.len() < 90).then_some(gzip);
 
         // Brotli compress
-        let mut brotli = Vec::new();
-        let mut writer = CompressorWriter::new(&mut brotli, 4 * 1024 * 1024, 11, 24);
+        let brotli = Vec::new();
+        let encoder = BrotliEncoderOptions::new()
+            .quality(Quality::best())
+            .window_size(WindowSize::best())
+            .block_size(BlockSize::best())
+            .build()
+            .unwrap();
+        let mut writer = CompressorWriter::with_encoder(encoder, brotli);
         writer.write_all(&plain).unwrap();
         writer.flush().unwrap();
-        writer.into_inner();
+        let brotli = writer.into_inner().unwrap();
         let brotli = (brotli.len() * 100 / plain.len() < 90).then_some(brotli);
 
         (path, plain, gzip, brotli)
