@@ -11,15 +11,15 @@ fn match_encoding_tag<'a>(
     accept_encoding: &str,
     item: &Item<'a>,
 ) -> (Option<&'static str>, &'a [u8]) {
-    if let Some(it) = &item.brotli {
-        if accept_encoding.contains("br") {
-            return (Some("br"), it);
-        }
+    if let Some(it) = &item.brotli
+        && accept_encoding.contains("br")
+    {
+        return (Some("br"), it);
     }
-    if let Some(it) = &item.gzip {
-        if accept_encoding.contains("gzip") {
-            return (Some("gzip"), it);
-        }
+    if let Some(it) = &item.gzip
+        && accept_encoding.contains("gzip")
+    {
+        return (Some("gzip"), it);
     }
     (None, item.plain)
 }
@@ -96,7 +96,9 @@ impl<'a> FileService<'a> {
     pub fn from_raw(content: &'a [u8]) -> Self {
         let size = u64::from_le_bytes(content[content.len() - 8..].try_into().unwrap());
         let bincode_part = &content[content.len() - 8 - size as usize..];
-        let (items, _): (Vec<ReportItem>, _) = bincode::serde::borrow_decode_from_slice(bincode_part, bincode::config::standard()).unwrap();
+        let (items, _): (Vec<ReportItem>, _) =
+            bincode::serde::borrow_decode_from_slice(bincode_part, bincode::config::standard())
+                .unwrap();
         Self {
             map: HashMap::from_iter(
                 items
@@ -107,7 +109,7 @@ impl<'a> FileService<'a> {
     }
 
     /// Find a matching file
-    pub fn find(&self, accept_encoding: &str, path: &str) -> Option<Match> {
+    pub fn find(&self, accept_encoding: &str, path: &str) -> Option<Match<'_>> {
         let path = path.trim_matches('/');
         // Check path
         if let Some(it) = self.map.get(path) {
@@ -137,7 +139,7 @@ impl<'a> FileService<'a> {
     }
 
     /// Construct match from an item and an accept encoding header value
-    fn match_item(&self, accept_encoding: &str, item: &Item<'a>) -> Match {
+    fn match_item(&self, accept_encoding: &str, item: &Item<'a>) -> Match<'_> {
         let (encoding, content) = match_encoding_tag(accept_encoding, item);
         Match {
             path: item.path,

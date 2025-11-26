@@ -26,7 +26,7 @@ bincode = { version = "2.0.1", features = ["alloc", "serde"] }
 # Memory map
 memmap2 = "0.9"
 # Fast hash map
-hashbrown = "0.15"
+hashbrown = "0.16"
 # Temporary file
 tempfile = "3.12.0"
 # Small and performant allocator
