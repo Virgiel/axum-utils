@@ -96,7 +96,7 @@ impl<'a> FileService<'a> {
     /// Create a file service from bytes
     pub fn from_raw(content: &'a [u8]) -> Self {
         let size = u64::from_le_bytes(content[content.len() - 8..].try_into().unwrap());
-        let bincode_part = &content[content.len() - 8 - size as usize..];
+        let bincode_part = &content[content.len() - 8 - size as usize..][..size as usize];
         let items: Vec<ReportItem> = bitcode::decode(bincode_part).unwrap();
 
         Self {
