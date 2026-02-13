@@ -126,10 +126,10 @@ impl Accumulator {
     pub fn persist(mut self, path: Option<&Path>) -> (File, Vec<Item>) {
         let items: Vec<_> = self.items.iter().map(Item::report).collect();
         let bytes = bitcode::encode(&items);
-        self.writer
-            .write_all(bytes.len().to_le_bytes().as_slice())
-            .unwrap();
         self.writer.write_all(bytes.as_slice()).unwrap();
+        self.writer
+            .write_all((bytes.len() as u64).to_le_bytes().as_slice())
+            .unwrap();
         let file = self.writer.into_inner().unwrap();
         if let Some(path) = path {
             match file.persist(path) {
