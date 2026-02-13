@@ -1,5 +1,6 @@
 use std::{fs::File, path::Path};
 
+use bitcode::{Decode, Encode};
 use hashbrown::HashMap;
 use memmap2::Mmap;
 
@@ -24,7 +25,7 @@ fn match_encoding_tag<'a>(
     (None, item.plain)
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Encode, Decode)]
 /// Optimized item with metadata
 pub struct ReportItem<'a> {
     pub path: &'a str,
@@ -96,9 +97,8 @@ impl<'a> FileService<'a> {
     pub fn from_raw(content: &'a [u8]) -> Self {
         let size = u64::from_le_bytes(content[content.len() - 8..].try_into().unwrap());
         let bincode_part = &content[content.len() - 8 - size as usize..];
-        let (items, _): (Vec<ReportItem>, _) =
-            bincode::serde::borrow_decode_from_slice(bincode_part, bincode::config::standard())
-                .unwrap();
+        let items: Vec<ReportItem> = bitcode::decode(bincode_part).unwrap();
+
         Self {
             map: HashMap::from_iter(
                 items

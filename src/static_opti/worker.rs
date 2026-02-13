@@ -10,6 +10,8 @@ use brotlic::{BlockSize, BrotliEncoderOptions, CompressorWriter, Quality, Window
 use libdeflater::{CompressionLvl, Compressor};
 use tempfile::NamedTempFile;
 
+use crate::static_opti::ReportItem;
+
 /// Concurrent queue
 struct StaticQueue<T> {
     items: Vec<T>,
@@ -42,13 +44,25 @@ impl<T> StaticQueue<T> {
 }
 
 /// Optimized item
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug)]
 pub struct Item {
     pub path: String,
     pub etag: String,
     pub plain: (u64, u32),
     pub gzip: Option<(u64, u32)>,
     pub brotli: Option<(u64, u32)>,
+}
+
+impl Item {
+    pub fn report<'a>(&'a self) -> ReportItem<'a> {
+        ReportItem {
+            path: &self.path,
+            etag: &self.etag,
+            plain: self.plain,
+            gzip: self.gzip,
+            brotli: self.brotli,
+        }
+    }
 }
 
 type CompressedFile = (String, Vec<u8>, Option<Vec<u8>>, Option<Vec<u8>>);
@@ -110,15 +124,12 @@ impl Accumulator {
 
     /// Persist accumulator buffer in a file, return optimized items
     pub fn persist(mut self, path: Option<&Path>) -> (File, Vec<Item>) {
-        let size = bincode::serde::encode_into_std_write(
-            &self.items,
-            &mut self.writer,
-            bincode::config::standard(),
-        )
-        .unwrap();
+        let items: Vec<_> = self.items.iter().map(Item::report).collect();
+        let bytes = bitcode::encode(&items);
         self.writer
-            .write_all(size.to_le_bytes().as_slice())
+            .write_all(bytes.len().to_le_bytes().as_slice())
             .unwrap();
+        self.writer.write_all(bytes.as_slice()).unwrap();
         let file = self.writer.into_inner().unwrap();
         if let Some(path) = path {
             match file.persist(path) {
