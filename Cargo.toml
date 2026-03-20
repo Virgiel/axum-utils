@@ -7,7 +7,7 @@ edition = "2024"
 # Web
 axum = "0.8.1"
 # Async engine
-tokio = { version = "1.39", features = ["signal", "macros"] }
+tokio = { version = "1.39", features = ["signal", "macros", "rt-multi-thread"] }
 # Fast gzip compression
 libdeflater = "1.21"
 # Brotli
@@ -22,7 +22,7 @@ duplicate = "2.0"
 mime_guess = "2"
 # JSON
 serde = { version = "1.0", features = ["derive"] }
-bitcode = { version = "0.6.6"}
+bitcode = { version = "0.6.6" }
 # Memory map
 memmap2 = "0.9"
 # Fast hash map
