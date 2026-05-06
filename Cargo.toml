@@ -16,17 +16,14 @@ brotlic = "0.8.2"
 xxhash-rust = { version = "0.8", features = ["xxh3"] }
 # Fast base 64
 base64 = "0.22"
-# Macro for codegen
-duplicate = "2.0"
 # Mime
 mime_guess = "2"
 # JSON
-serde = { version = "1.0", features = ["derive"] }
 bitcode = { version = "0.6.6" }
 # Memory map
 memmap2 = "0.9"
 # Fast hash map
-hashbrown = "0.16"
+hashbrown = "0.17"
 # Temporary file
 tempfile = "3.12.0"
 # Small and performant allocator

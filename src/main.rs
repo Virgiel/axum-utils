@@ -121,7 +121,7 @@ async fn main() {
                 Box::leak(Box::new(FileService::leak(File::open(image).unwrap())));
 
             let app = Router::new()
-                .route("/", get(async move |h| route_files(&h, "/", &state)))
+                .route("/", get(async move |h| route_files(&h, "/", state)))
                 .route(
                     "/{*path}",
                     get(async move |h, Path(p): Path<String>| route_files(&h, &p, state)),
